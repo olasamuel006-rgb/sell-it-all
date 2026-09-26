@@ -28,4 +28,32 @@ const signIn=document.querySelector('#signInForm');if(signIn)signIn.onsubmit=asy
 const signUp=document.querySelector('#signUpForm');if(signUp)signUp.onsubmit=async e=>{e.preventDefault();const v=Object.fromEntries(new FormData(signUp));const {data,error}=await db.auth.signUp({email:v.email.trim(),password:v.password,options:{data:{full_name:v.name}}});if(error){document.querySelector('#signUpMessage').textContent=error.message;return}if(data.session)location.href='seller-dashboard.html';else{document.querySelector('[data-panel="signin"]').click();signIn.querySelector('[name="email"]').value=v.email;document.querySelector('#signInMessage').textContent='Account created. Confirm your email, then sign in here.'}};
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(a=>a.classList.toggle('active',a===t));document.querySelector('#signInForm').classList.toggle('hidden',t.dataset.panel!=='signin');document.querySelector('#signUpForm').classList.toggle('hidden',t.dataset.panel!=='signup')});
 document.querySelector('#signOut')?.addEventListener('click',async()=>{await db.auth.signOut();location.href='index.html'});document.querySelector('#marketSearch')?.addEventListener('input',render);document.querySelector('#categoryFilter')?.addEventListener('change',render);
-async function start(){const {data:{user}}=await db.auth.getUser();currentUser=user;if(location.pathname.endsWith('admin.html')){if(!user){location.replace('admin-login.html');return}const {data,error}=await db.rpc('is_admin');if(error||!data){await db.auth.signOut();location.replace('admin-login.html');return}}const a=document.querySelector('#accountGuest'),m=document.querySelector('#accountMember');if(a&&m&&user){a.classList.add('hidden');m.classList.remove('hidden');document.querySelector('#memberTitle').textContent=`Welcome, ${user.user_metadata.full_name||user.email}`;}await loadListings();buildEdit()}start();
+async function loadHero(){
+  const hero=document.querySelector('#heroArt');
+  if(!hero)return;
+  const {data,error}=await db.from('site_settings').select('value').eq('key','homepage_hero_url').maybeSingle();
+  if(error||!data?.value)return;
+  hero.style.backgroundImage=`url(${data.value})`;
+  hero.classList.add('has-image');
+}
+async function saveHeroImage(){
+  const input=document.querySelector('#heroImage');
+  const status=document.querySelector('#heroStatus');
+  const button=document.querySelector('#saveHero');
+  const file=input?.files?.[0];
+  if(!file){status.textContent='Choose an image first.';status.className='form-status error';return}
+  if(file.size>5*1024*1024){status.textContent='Use an image smaller than 5 MB.';status.className='form-status error';return}
+  button.disabled=true;status.textContent='Uploading homepage image…';status.className='form-status';
+  try{
+    const extension=(file.name.split('.').pop()||'jpg').toLowerCase();
+    const path=`homepage/${Date.now()}.${extension}`;
+    const {error:uploadError}=await db.storage.from('listing-images').upload(path,file,{upsert:false,contentType:file.type});
+    if(uploadError)throw uploadError;
+    const url=db.storage.from('listing-images').getPublicUrl(path).data.publicUrl;
+    const {error:settingsError}=await db.from('site_settings').upsert({key:'homepage_hero_url',value:url},{onConflict:'key'});
+    if(settingsError)throw settingsError;
+    status.textContent='Homepage image saved. It is now live for every visitor.';status.className='form-status success';input.value='';
+  }catch(error){status.textContent=`Could not save image: ${error.message}`;status.className='form-status error'}finally{button.disabled=false}
+}
+async function start(){const {data:{user}}=await db.auth.getUser();currentUser=user;if(location.pathname.endsWith('admin.html')){if(!user){location.replace('admin-login.html');return}const {data,error}=await db.rpc('is_admin');if(error||!data){await db.auth.signOut();location.replace('admin-login.html');return}}const a=document.querySelector('#accountGuest'),m=document.querySelector('#accountMember');if(a&&m&&user){a.classList.add('hidden');m.classList.remove('hidden');document.querySelector('#memberTitle').textContent=`Welcome, ${user.user_metadata.full_name||user.email}`;}await loadListings();await loadHero();document.querySelector('#saveHero')?.addEventListener('click',saveHeroImage);buildEdit()}start();
+
