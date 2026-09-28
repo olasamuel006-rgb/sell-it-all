@@ -54,6 +54,8 @@ const adminLogin=document.querySelector('#adminLogin');if(adminLogin)adminLogin.
 const signIn=document.querySelector('#signInForm');if(signIn)signIn.onsubmit=async e=>{e.preventDefault();const v=Object.fromEntries(new FormData(signIn));const {error}=await db.auth.signInWithPassword({email:v.email.trim(),password:v.password});document.querySelector('#signInMessage').textContent=error?error.message:'';if(!error)location.href='seller-dashboard.html'};
 const signUp=document.querySelector('#signUpForm');if(signUp)signUp.onsubmit=async e=>{e.preventDefault();const v=Object.fromEntries(new FormData(signUp));const {data,error}=await db.auth.signUp({email:v.email.trim(),password:v.password,options:{data:{full_name:v.name}}});if(error){document.querySelector('#signUpMessage').textContent=error.message;return}if(data.session)location.href='seller-dashboard.html';else{document.querySelector('[data-panel="signin"]').click();signIn.querySelector('[name="email"]').value=v.email;document.querySelector('#signInMessage').textContent='Account created. Confirm your email, then sign in here.'}};
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(a=>a.classList.toggle('active',a===t));document.querySelector('#signInForm').classList.toggle('hidden',t.dataset.panel!=='signin');document.querySelector('#signUpForm').classList.toggle('hidden',t.dataset.panel!=='signup')});
+const adminLogout=document.querySelector('#adminLogout');
+if(adminLogout)adminLogout.addEventListener('click',async()=>{await db.auth.signOut();location.href='admin-login.html'});
 document.querySelector('#signOut')?.addEventListener('click',async()=>{await db.auth.signOut();location.href='index.html'});document.querySelector('#marketSearch')?.addEventListener('input',render);document.querySelector('#categoryFilter')?.addEventListener('change',render);
 async function loadHero(){
   const hero=document.querySelector('#heroArt');
@@ -82,7 +84,21 @@ async function saveHeroImage(){
     status.textContent='Homepage image saved. It is now live for every visitor.';status.className='form-status success';input.value='';
   }catch(error){status.textContent=`Could not save image: ${error.message}`;status.className='form-status error'}finally{button.disabled=false}
 }
-async function start(){const {data:{user}}=await db.auth.getUser();currentUser=user;if(location.pathname.endsWith('admin.html')){if(!user){location.replace('admin-login.html');return}const {data,error}=await db.rpc('is_admin');if(error||!data){await db.auth.signOut();location.replace('admin-login.html');return}}const a=document.querySelector('#accountGuest'),m=document.querySelector('#accountMember');if(a&&m&&user){a.classList.add('hidden');m.classList.remove('hidden');document.querySelector('#memberTitle').textContent=`Welcome, ${user.user_metadata.full_name||user.email}`;}await loadListings();await loadVtuRequests();await loadHero();document.querySelector('#saveHero')?.addEventListener('click',saveHeroImage);buildEdit()}start();
+let installEvent=null;
+function setupInstallPrompt(){
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('/sw.js').catch(console.error);
+  const prompt=document.querySelector('#installPrompt');
+  const install=document.querySelector('#installApp');
+  const dismiss=document.querySelector('#dismissInstall');
+  if(!prompt)return;
+  window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installEvent=event;if(!localStorage.getItem('sellItAllInstallDismissed'))prompt.classList.remove('hidden')});
+  install?.addEventListener('click',async()=>{if(!installEvent)return;installEvent.prompt();await installEvent.userChoice;installEvent=null;prompt.classList.add('hidden')});
+  dismiss?.addEventListener('click',()=>{localStorage.setItem('sellItAllInstallDismissed','true');prompt.classList.add('hidden')});
+  window.addEventListener('appinstalled',()=>{prompt.classList.add('hidden');localStorage.removeItem('sellItAllInstallDismissed')});
+}
+async function start(){setupInstallPrompt();const {data:{user}}=await db.auth.getUser();currentUser=user;if(location.pathname.endsWith('admin.html')){if(!user){location.replace('admin-login.html');return}const {data,error}=await db.rpc('is_admin');if(error||!data){await db.auth.signOut();location.replace('admin-login.html');return}document.querySelector('#adminIdentity').textContent=user.email||'Admin';}const a=document.querySelector('#accountGuest'),m=document.querySelector('#accountMember');if(a&&m&&user){a.classList.add('hidden');m.classList.remove('hidden');document.querySelector('#memberTitle').textContent=`Welcome, ${user.user_metadata.full_name||user.email}`;}await loadListings();await loadVtuRequests();await loadHero();document.querySelector('#saveHero')?.addEventListener('click',saveHeroImage);buildEdit()}start();
+
+
 
 
 

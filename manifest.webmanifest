@@ -1,0 +1,10 @@
+{
+  "name": "Sell It All",
+  "short_name": "Sell It All",
+  "description": "Buy, sell, and discover pre-loved items.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#faf5ec",
+  "theme_color": "#356e57",
+  "icons": [{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
