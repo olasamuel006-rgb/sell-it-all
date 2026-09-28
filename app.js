@@ -17,7 +17,7 @@ async function loadVtuRequests(){
   const {data,error}=await db.from('vtu_requests').select('*').order('created_at',{ascending:false});
   if(error){target.innerHTML=empty(`Could not load VTU requests: ${safe(error.message)}`);return}
   vtuRequests=data||[];
-  target.innerHTML=vtuRequests.length?vtuRequests.map(x=>`<article class="row vtu-row"><div class="vtu-icon">◈</div><div><h3>₦${money(x.amount).replace('₦','')} · ${safe(x.network)}</h3><p>Account number: ${safe(x.account_number)}</p><p class="vtu-meta">Received ${new Date(x.created_at).toLocaleString()}</p></div><div class="actions"><button class="small del" onclick="deleteVtuRequest('${x.id}')">Delete message</button></div></article>`).join(''):empty('No VTU requests yet.');
+  target.innerHTML=vtuRequests.length?vtuRequests.map(x=>`<article class="row vtu-row"><div class="vtu-icon">◈</div><div><h3>₦${money(x.amount).replace('₦','')} · ${safe(x.network)}</h3><p>VTU phone: ${safe(x.vtu_phone||'Not provided')} · Contact: ${safe(x.contact_phone||'Not provided')}</p><p>Account: ${safe(x.account_number)} · ${safe(x.account_name||'Not provided')}</p><p class="vtu-meta">Received ${new Date(x.created_at).toLocaleString()}</p></div><div class="actions"><button class="small del" onclick="deleteVtuRequest('${x.id}')">Delete message</button></div></article>`).join(''):empty('No VTU requests yet.');
 }
 async function deleteVtuRequest(id){
   if(!confirm('Delete this VTU request message?'))return;
@@ -44,7 +44,7 @@ if(vtuForm)vtuForm.onsubmit=async event=>{
   const values=Object.fromEntries(new FormData(vtuForm));
   button.disabled=true;message.textContent='Sending your VTU request…';message.className='form-status';
   try{
-    const {error}=await db.from('vtu_requests').insert({amount:values.amount,network:values.network,account_number:values.accountNumber,owner_id:currentUser.id});
+    const {error}=await db.from('vtu_requests').insert({amount:values.amount,network:values.network,vtu_phone:values.vtuPhone,contact_phone:values.contactPhone,account_number:values.accountNumber,account_name:values.accountName,owner_id:currentUser.id});
     if(error)throw error;
     vtuForm.reset();message.textContent='Your VTU request has been sent to the admin.';message.className='form-status success';
   }catch(error){message.textContent=`Could not send request: ${error.message}`;message.className='form-status error'}finally{button.disabled=false}
@@ -83,6 +83,7 @@ async function saveHeroImage(){
   }catch(error){status.textContent=`Could not save image: ${error.message}`;status.className='form-status error'}finally{button.disabled=false}
 }
 async function start(){const {data:{user}}=await db.auth.getUser();currentUser=user;if(location.pathname.endsWith('admin.html')){if(!user){location.replace('admin-login.html');return}const {data,error}=await db.rpc('is_admin');if(error||!data){await db.auth.signOut();location.replace('admin-login.html');return}}const a=document.querySelector('#accountGuest'),m=document.querySelector('#accountMember');if(a&&m&&user){a.classList.add('hidden');m.classList.remove('hidden');document.querySelector('#memberTitle').textContent=`Welcome, ${user.user_metadata.full_name||user.email}`;}await loadListings();await loadVtuRequests();await loadHero();document.querySelector('#saveHero')?.addEventListener('click',saveHeroImage);buildEdit()}start();
+
 
 
 
