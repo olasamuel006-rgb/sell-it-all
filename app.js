@@ -96,7 +96,19 @@ function setupInstallPrompt(){
   dismiss?.addEventListener('click',()=>{localStorage.setItem('sellItAllInstallDismissed','true');prompt.classList.add('hidden')});
   window.addEventListener('appinstalled',()=>{prompt.classList.add('hidden');localStorage.removeItem('sellItAllInstallDismissed')});
 }
-async function start(){setupInstallPrompt();const {data:{user}}=await db.auth.getUser();currentUser=user;if(location.pathname.endsWith('admin.html')){if(!user){location.replace('admin-login.html');return}const {data,error}=await db.rpc('is_admin');if(error||!data){await db.auth.signOut();location.replace('admin-login.html');return}document.querySelector('#adminIdentity').textContent=user.email||'Admin';}const a=document.querySelector('#accountGuest'),m=document.querySelector('#accountMember');if(a&&m&&user){a.classList.add('hidden');m.classList.remove('hidden');document.querySelector('#memberTitle').textContent=`Welcome, ${user.user_metadata.full_name||user.email}`;}await loadListings();await loadVtuRequests();await loadHero();document.querySelector('#saveHero')?.addEventListener('click',saveHeroImage);buildEdit()}start();
+function setupThemeSwitch(){
+  const saved=localStorage.getItem('sellItAllTheme')||'white';
+  document.body.classList.toggle('deep-blue',saved==='blue');
+  const links=document.querySelector('.nav .links');
+  if(!links)return;
+  const button=document.createElement('button');
+  button.type='button';button.className='theme-switch';button.setAttribute('aria-label','Switch background theme');
+  const paint=()=>{const blue=document.body.classList.contains('deep-blue');button.innerHTML=`<span class="theme-dot"></span>${blue?'White mode':'Deep blue'}`;button.setAttribute('aria-pressed',String(blue))};
+  button.addEventListener('click',()=>{document.body.classList.toggle('deep-blue');localStorage.setItem('sellItAllTheme',document.body.classList.contains('deep-blue')?'blue':'white');paint()});
+  links.appendChild(button);paint();
+}
+async function start(){setupInstallPrompt();setupThemeSwitch();const {data:{user}}=await db.auth.getUser();currentUser=user;if(location.pathname.endsWith('admin.html')){if(!user){location.replace('admin-login.html');return}const {data,error}=await db.rpc('is_admin');if(error||!data){await db.auth.signOut();location.replace('admin-login.html');return}document.querySelector('#adminIdentity').textContent=user.email||'Admin';}const a=document.querySelector('#accountGuest'),m=document.querySelector('#accountMember');if(a&&m&&user){a.classList.add('hidden');m.classList.remove('hidden');document.querySelector('#memberTitle').textContent=`Welcome, ${user.user_metadata.full_name||user.email}`;}await loadListings();await loadVtuRequests();await loadHero();document.querySelector('#saveHero')?.addEventListener('click',saveHeroImage);buildEdit()}start();
+
 
 
 
