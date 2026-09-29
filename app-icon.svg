@@ -1,1 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#356e57"/><circle cx="374" cy="138" r="62" fill="#f7c967"/><path d="M105 357c42-76 112-122 194-122 34 0 68 8 104 26v128H105z" fill="#e95d30"/><path d="M185 333c0-69 26-128 83-128 31 0 54 20 54 56 0 33-18 54-46 54-20 0-34-12-34-31 0-20 13-33 29-33 7 0 13 2 18 6-4-17-16-26-31-26-32 0-46 48-46 102z" fill="#fffdf9"/><text x="256" y="442" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#fffdf9">SELL IT ALL</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#071f42"/>
+  <rect x="35" y="35" width="442" height="442" rx="88" fill="none" stroke="#70b9f1" stroke-width="4" opacity=".45"/>
+  <circle cx="409" cy="111" r="45" fill="#e95d30"/>
+  <path d="M89 342c43-66 105-99 183-99 57 0 105 18 151 52v126H89z" fill="#174b7c"/>
+  <text x="256" y="229" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="114" font-weight="800" letter-spacing="-7" fill="#fff">SELL</text>
+  <text x="256" y="302" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="47" font-weight="700" letter-spacing="3" fill="#b9def8">it all</text>
+</svg>
