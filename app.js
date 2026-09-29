@@ -89,10 +89,13 @@ function setupInstallPrompt(){
   if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('/sw.js').catch(console.error);
   const prompt=document.querySelector('#installPrompt');
   const install=document.querySelector('#installApp');
+  const topInstall=document.querySelector('#topInstallApp');
   const dismiss=document.querySelector('#dismissInstall');
   if(!prompt)return;
   window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installEvent=event;if(!localStorage.getItem('sellItAllInstallDismissed'))prompt.classList.remove('hidden')});
-  install?.addEventListener('click',async()=>{if(!installEvent)return;installEvent.prompt();await installEvent.userChoice;installEvent=null;prompt.classList.add('hidden')});
+  const promptInstall=async()=>{if(!installEvent){alert('To install Sell It All, use your browser menu and choose Install app or Add to Home screen.');return}installEvent.prompt();await installEvent.userChoice;installEvent=null;prompt.classList.add('hidden')};
+  install?.addEventListener('click',promptInstall);
+  topInstall?.addEventListener('click',promptInstall);
   dismiss?.addEventListener('click',()=>{localStorage.setItem('sellItAllInstallDismissed','true');prompt.classList.add('hidden')});
   window.addEventListener('appinstalled',()=>{prompt.classList.add('hidden');localStorage.removeItem('sellItAllInstallDismissed')});
 }
@@ -108,6 +111,8 @@ function setupThemeSwitch(){
   links.appendChild(button);paint();
 }
 async function start(){setupInstallPrompt();setupThemeSwitch();const {data:{user}}=await db.auth.getUser();currentUser=user;if(location.pathname.endsWith('admin.html')){if(!user){location.replace('admin-login.html');return}const {data,error}=await db.rpc('is_admin');if(error||!data){await db.auth.signOut();location.replace('admin-login.html');return}document.querySelector('#adminIdentity').textContent=user.email||'Admin';}const a=document.querySelector('#accountGuest'),m=document.querySelector('#accountMember');if(a&&m&&user){a.classList.add('hidden');m.classList.remove('hidden');document.querySelector('#memberTitle').textContent=`Welcome, ${user.user_metadata.full_name||user.email}`;}await loadListings();await loadVtuRequests();await loadHero();document.querySelector('#saveHero')?.addEventListener('click',saveHeroImage);buildEdit()}start();
+
+
 
 
 
